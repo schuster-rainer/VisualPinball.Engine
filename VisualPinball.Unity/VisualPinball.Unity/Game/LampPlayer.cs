@@ -42,6 +42,7 @@ namespace VisualPinball.Unity
 
 		private TableComponent _tableComponent;
 		private IGamelogicEngine _gamelogicEngine;
+		private INodeGraph _nodeGraph;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -51,10 +52,11 @@ namespace VisualPinball.Unity
 		internal Dictionary<string, float> LampStatuses { get; } = new Dictionary<string, float>();
 		internal void RegisterLamp(ILampDeviceComponent component, IApiLamp lampApi) => _lamps[component] = lampApi;
 
-		public void Awake(TableComponent tableComponent, IGamelogicEngine gamelogicEngine)
+		public void Awake(TableComponent tableComponent, IGamelogicEngine gamelogicEngine, INodeGraph nodeGraph)
 		{
 			_tableComponent = tableComponent;
 			_gamelogicEngine = gamelogicEngine;
+			_nodeGraph = nodeGraph;
 		}
 
 		public void OnStart()
@@ -137,6 +139,8 @@ namespace VisualPinball.Unity
 				UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 #endif
 			}
+
+			_nodeGraph.HandleLampEvent(lampEvent);
 		}
 
 		public void OnDestroy()

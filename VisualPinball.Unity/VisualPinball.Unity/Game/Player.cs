@@ -41,6 +41,9 @@ namespace VisualPinball.Unity
 		public IGamelogicEngine GamelogicEngine;
 
 		[NonSerialized]
+		public INodeGraph NodeGraph;
+
+		[NonSerialized]
 		public BallManager BallManager;
 
 		public List<SwitchMapping> SwitchMapping => _tableComponent.MappingConfig.Switches;
@@ -122,6 +125,7 @@ namespace VisualPinball.Unity
 			_tableComponent = GetComponent<TableComponent>();
 			_playfieldComponent = GetComponentInChildren<PlayfieldComponent>();
 			var engineComponent = GetComponent<IGamelogicEngine>();
+			NodeGraph = GetComponent<INodeGraph>();
 
 			_apis.Add(TableApi);
 
@@ -131,7 +135,8 @@ namespace VisualPinball.Unity
 
 			if (engineComponent != null) {
 				GamelogicEngine = engineComponent;
-				_lampPlayer.Awake(_tableComponent, GamelogicEngine);
+
+				_lampPlayer.Awake(_tableComponent, GamelogicEngine, NodeGraph);
 				_coilPlayer.Awake(_tableComponent, GamelogicEngine, _lampPlayer, _wirePlayer);
 				_switchPlayer.Awake(_tableComponent, GamelogicEngine, _inputManager);
 				_wirePlayer.Awake(_tableComponent, _inputManager, _switchPlayer, this);
@@ -163,6 +168,8 @@ namespace VisualPinball.Unity
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().Init(_tableComponent);
 			}
+
+			NodeGraph?.OnInit(this, TableApi);
 		}
 
 		private void Update()
@@ -182,7 +189,7 @@ namespace VisualPinball.Unity
 			_lampPlayer.OnDestroy();
 			_wirePlayer.OnDestroy();
 			_displayPlayer.OnDestroy();
-
+			
 			foreach (var (action, callback) in _actions) {
 				action.performed -= callback;
 			}
